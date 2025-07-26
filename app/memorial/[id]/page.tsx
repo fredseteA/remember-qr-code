@@ -14,15 +14,7 @@ import { MapPin, Calendar, QrCode, ArrowLeft, AlertCircle, CheckCircle } from "l
 import { ChristianCross } from "@/components/ui/christian-cross"
 import Link from "next/link"
 import emailjs from "@emailjs/browser"
-
-interface MemorialData {
-  nomeCompleto: string
-  localSepultamento: string
-  dataNascimento: string
-  dataFalecimento: string
-  biografia: string
-  fotos: string[]
-}
+import { salvarSolicitacaoQRCode, type MemorialData } from "@/lib/firestore"
 
 interface SolicitanteData {
   nome: string
@@ -42,6 +34,8 @@ export default function MemorialPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string>("")
   const [showDebug, setShowDebug] = useState(false)
+  const [isUploadingFirebase, setIsUploadingFirebase] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>("")
 
   useEffect(() => {
     const memorialId = params.id as string
@@ -61,6 +55,7 @@ Debug Info:
 - Public Key: ${publicKey ? `${publicKey.substring(0, 10)}...` : "NÃO ENCONTRADA"}
 - Service ID: ${serviceId || "NÃO ENCONTRADO"}
 - Template ID: ${templateId || "NÃO ENCONTRADO"}
+- Firebase Project: remember-qr-code
 - Todas configuradas: ${publicKey && serviceId && templateId ? "SIM" : "NÃO"}
     `
     setDebugInfo(debug)
@@ -80,9 +75,44 @@ Debug Info:
   const handleSolicitarQR = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setIsUploadingFirebase(true)
+    setUploadProgress("Iniciando...")
 
     try {
-      // Verificar se as chaves do EmailJS estão configuradas
+      // 1. PRIMEIRO: Salvar no Firebase Firestore + Storage
+      if (memorial) {
+        console.log("🔥 Iniciando processo de salvamento no Firebase...")
+        setUploadProgress("Conectando ao Firebase...")
+
+        try {
+          const memorialUrl = window.location.href
+          setUploadProgress("Salvando dados e fotos...")
+
+          const docId = await salvarSolicitacaoQRCode(memorial, solicitante, memorialUrl)
+
+          console.log("✅ Dados salvos no Firebase com sucesso! ID:", docId)
+          setUploadProgress("✅ Dados salvos com sucesso!")
+        } catch (firebaseError: any) {
+          console.error("❌ Erro ao salvar no Firebase:", firebaseError)
+
+          // Mostrar erro específico do Firebase
+          let errorMsg = "Erro desconhecido no Firebase"
+          if (firebaseError.message) {
+            errorMsg = firebaseError.message
+          } else if (firebaseError.code) {
+            errorMsg = `Código: ${firebaseError.code}`
+          }
+
+          setUploadProgress(`❌ Erro: ${errorMsg}`)
+
+          alert(`❌ Erro ao salvar no Firebase: ${errorMsg}\n\nVerifique sua conexão com a internet e tente novamente.`)
+          return // Para o processo se der erro no Firebase
+        }
+      }
+
+      setUploadProgress("Preparando envio de email...")
+
+      // 2. SEGUNDO: Enviar email (como antes)
       const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
       const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
       const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
@@ -95,6 +125,7 @@ Debug Info:
 
       if (!publicKey || !serviceId || !templateId) {
         console.log("⚠️ Chaves não configuradas, usando fallback...")
+        setUploadProgress("Abrindo cliente de email...")
 
         // Fallback: mostrar dados para contato manual
         const emailBody = `Solicitação de QR Code - Remember QR Code
@@ -111,6 +142,8 @@ Data de Nascimento: ${formatDate(memorial?.dataNascimento || "")}
 Data de Falecimento: ${formatDate(memorial?.dataFalecimento || "")}
 URL do Memorial: ${window.location.href}
 
+✅ DADOS SALVOS NO FIREBASE COM SUCESSO!
+
 Por favor, entre em contato para solicitar o QR Code.`
 
         // Abrir cliente de email padrão
@@ -118,15 +151,19 @@ Por favor, entre em contato para solicitar o QR Code.`
         window.open(mailtoLink, "_blank")
 
         alert(
-          "✅ Seu cliente de email foi aberto com os dados preenchidos!\n\nSe não abriu automaticamente, copie os dados e envie para fredericoluna93@gmail.com",
+          "🎉 SUCESSO!\n\n✅ Todos os dados foram salvos no Firebase!\n📧 Seu cliente de email foi aberto com os dados preenchidos!\n\nSe não abriu automaticamente, copie os dados e envie para fredericoluna93@gmail.com",
         )
+
+        // Limpar formulário
         setDialogOpen(false)
         setSolicitante({ nome: "", email: "", telefone: "" })
+        setUploadProgress("")
         return
       }
 
       // Se as chaves estão configuradas, usar EmailJS
       console.log("📧 Tentando enviar via EmailJS...")
+      setUploadProgress("Enviando email...")
 
       // Inicializar EmailJS
       emailjs.init(publicKey)
@@ -148,10 +185,16 @@ Por favor, entre em contato para solicitar o QR Code.`
       const result = await emailjs.send(serviceId, templateId, templateParams)
 
       console.log("✅ Email enviado com sucesso:", result)
+      setUploadProgress("✅ Email enviado!")
 
-      alert("✅ Solicitação enviada com sucesso! Entraremos em contato em breve.")
+      alert(
+        "🎉 SUCESSO COMPLETO!\n\n✅ Dados salvos no Firebase!\n📧 Email enviado automaticamente!\n\nEntraremos em contato em breve.",
+      )
+
+      // Limpar formulário
       setDialogOpen(false)
       setSolicitante({ nome: "", email: "", telefone: "" })
+      setUploadProgress("")
     } catch (error: any) {
       console.error("❌ Erro detalhado:", error)
 
@@ -165,33 +208,13 @@ Por favor, entre em contato para solicitar o QR Code.`
         errorMessage = error
       }
 
-      console.log("🔄 Usando fallback devido ao erro:", errorMessage)
+      setUploadProgress(`❌ Erro: ${errorMessage}`)
 
-      // Fallback em caso de erro
-      const emailBody = `Solicitação de QR Code - Remember QR Code
-
-DADOS DO SOLICITANTE:
-Nome: ${solicitante.nome}
-Email: ${solicitante.email}
-Telefone: ${solicitante.telefone}
-
-DADOS DO MEMORIAL:
-Nome do Falecido: ${memorial?.nomeCompleto}
-Local de Sepultamento: ${memorial?.localSepultamento}
-Data de Nascimento: ${formatDate(memorial?.dataNascimento || "")}
-Data de Falecimento: ${formatDate(memorial?.dataFalecimento || "")}
-URL do Memorial: ${window.location.href}
-
-ERRO TÉCNICO: ${errorMessage}`
-
-      const mailtoLink = `mailto:fredericoluna93@gmail.com?subject=Solicitação de QR Code - ${memorial?.nomeCompleto}&body=${encodeURIComponent(emailBody)}`
-      window.open(mailtoLink, "_blank")
-
-      alert(
-        `⚠️ Problema no envio automático: ${errorMessage}\n\n✅ Seu cliente de email foi aberto com os dados preenchidos como alternativa.`,
-      )
+      alert(`❌ Erro ao processar solicitação: ${errorMessage}\n\nTente novamente ou entre em contato conosco.`)
     } finally {
       setIsSubmitting(false)
+      setIsUploadingFirebase(false)
+      setTimeout(() => setUploadProgress(""), 3000) // Limpar progresso após 3s
     }
   }
 
@@ -326,23 +349,40 @@ ERRO TÉCNICO: ${errorMessage}`
               </DialogHeader>
 
               {/* Status das configurações */}
-              <Alert className="mb-4">
-                {process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <AlertDescription className="text-green-700">
-                      EmailJS configurado - envio automático ativado
-                    </AlertDescription>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                    <AlertDescription className="text-amber-700">
-                      EmailJS não configurado - será usado cliente de email padrão
-                    </AlertDescription>
-                  </>
+              <div className="space-y-2">
+                <Alert className="mb-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <AlertDescription className="text-green-700">
+                    🔥 Firebase configurado - dados serão salvos automaticamente
+                  </AlertDescription>
+                </Alert>
+
+                <Alert className="mb-4">
+                  {process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <AlertDescription className="text-green-700">
+                        EmailJS configurado - envio automático ativado
+                      </AlertDescription>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <AlertDescription className="text-amber-700">
+                        EmailJS não configurado - será usado cliente de email padrão
+                      </AlertDescription>
+                    </>
+                  )}
+                </Alert>
+
+                {/* Progress indicator */}
+                {uploadProgress && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{uploadProgress}</AlertDescription>
+                  </Alert>
                 )}
-              </Alert>
+              </div>
 
               <form onSubmit={handleSolicitarQR} className="space-y-4">
                 <div className="space-y-2">
@@ -377,7 +417,11 @@ ERRO TÉCNICO: ${errorMessage}`
                   />
                 </div>
                 <Button type="submit" className="w-full bg-blue-400 hover:bg-blue-500" disabled={isSubmitting}>
-                  {isSubmitting ? "Enviando..." : "Enviar Solicitação"}
+                  {isUploadingFirebase
+                    ? "Salvando no Firebase..."
+                    : isSubmitting
+                      ? "Enviando..."
+                      : "Enviar Solicitação"}
                 </Button>
               </form>
             </DialogContent>
