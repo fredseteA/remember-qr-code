@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +23,7 @@ interface MemorialData {
 
 export default function CriarMemorialPage() {
   const router = useRouter()
+  const [isClient, setIsClient] = useState(false)
   const [formData, setFormData] = useState<MemorialData>({
     nomeCompleto: "",
     localSepultamento: "",
@@ -32,6 +32,11 @@ export default function CriarMemorialPage() {
     biografia: "",
     fotos: [],
   })
+
+  // Garantir que estamos no cliente
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleInputChange = (field: keyof MemorialData, value: string) => {
     setFormData((prev) => ({
@@ -69,14 +74,35 @@ export default function CriarMemorialPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Generate a simple ID
-    const memorialId = Date.now().toString()
+    try {
+      // Generate a simple ID
+      const memorialId = Date.now().toString()
 
-    // Save to localStorage
-    localStorage.setItem(`memorial_${memorialId}`, JSON.stringify(formData))
+      // Save to localStorage with error handling
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(`memorial_${memorialId}`, JSON.stringify(formData))
+        console.log("✅ Memorial salvo no localStorage:", memorialId)
+      } else {
+        console.warn("⚠️ localStorage não disponível")
+      }
 
-    // Redirect to memorial page
-    router.push(`/memorial/${memorialId}`)
+      // Redirect to memorial page
+      router.push(`/memorial/${memorialId}`)
+    } catch (error) {
+      console.error("❌ Erro ao salvar memorial:", error)
+      alert("Erro ao criar memorial. Tente novamente.")
+    }
+  }
+
+  // Não renderizar até estar no cliente
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Carregando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
