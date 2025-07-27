@@ -34,6 +34,7 @@ interface MemorialData {
 export default function CriarMemorialPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<MemorialData>({
     nomeCompleto: "",
     localSepultamento: "",
@@ -82,23 +83,51 @@ export default function CriarMemorialPage() {
     }))
   }
 
+  // Função melhorada para upload de fotos com compatibilidade iOS
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (!files) return
 
-    Array.from(files).forEach((file) => {
-      if (formData.fotos.length >= 10) return
+    console.log("📸 Iniciando upload de fotos...")
+
+    Array.from(files).forEach((file, index) => {
+      if (formData.fotos.length >= 10) {
+        console.warn("⚠️ Limite de 10 fotos atingido")
+        return
+      }
+
+      // Verificar tipo de arquivo
+      if (!file.type.startsWith("image/")) {
+        console.warn("⚠️ Arquivo não é uma imagem:", file.name)
+        return
+      }
 
       const reader = new FileReader()
+
       reader.onload = (e) => {
-        const result = e.target?.result as string
-        setFormData((prev) => ({
-          ...prev,
-          fotos: [...prev.fotos, result],
-        }))
+        try {
+          const result = e.target?.result as string
+          if (result) {
+            console.log(`✅ Foto ${index + 1} carregada com sucesso`)
+            setFormData((prev) => ({
+              ...prev,
+              fotos: [...prev.fotos, result],
+            }))
+          }
+        } catch (error) {
+          console.error("❌ Erro ao processar foto:", error)
+        }
       }
+
+      reader.onerror = (error) => {
+        console.error("❌ Erro ao ler arquivo:", error)
+      }
+
       reader.readAsDataURL(file)
     })
+
+    // Limpar input para permitir re-upload do mesmo arquivo
+    event.target.value = ""
   }
 
   const removePhoto = (index: number) => {
@@ -130,15 +159,37 @@ export default function CriarMemorialPage() {
     return errors.length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Função melhorada para compatibilidade iOS
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Prevenir múltiplos cliques
+    if (isSubmitting) {
+      console.log("⚠️ Já está processando, ignorando clique duplo")
+      return
+    }
+
+    console.log("🚀 Iniciando processo de criação do memorial...")
+    setIsSubmitting(true)
 
     try {
       // Validar formulário
+      console.log("🔍 Validando formulário...")
       const isValid = validateForm()
+      console.log("📊 Resultado da validação:", isValid ? "✅ VÁLIDO" : "❌ INVÁLIDO")
+
+      // Verificar se localStorage está disponível (iOS pode bloquear em modo privado)
+      if (typeof window === "undefined") {
+        throw new Error("Window não disponível")
+      }
+
+      if (typeof Storage === "undefined") {
+        throw new Error("localStorage não suportado neste navegador")
+      }
 
       // Generate a simple ID
       const memorialId = Date.now().toString()
+      console.log("🆔 ID do memorial gerado:", memorialId)
 
       // Preparar dados com validação
       const memorialDataToSave: MemorialData = {
@@ -146,20 +197,50 @@ export default function CriarMemorialPage() {
         validado: isValid,
       }
 
-      // Save to localStorage with error handling
-      if (typeof window !== "undefined" && window.localStorage) {
-        localStorage.setItem(`memorial_${memorialId}`, JSON.stringify(memorialDataToSave))
+      console.log("💾 Tentando salvar no localStorage...")
+
+      // Tentar salvar no localStorage com tratamento de erro específico para iOS
+      try {
+        const dataString = JSON.stringify(memorialDataToSave)
+        localStorage.setItem(`memorial_${memorialId}`, dataString)
+
+        // Verificar se realmente foi salvo
+        const savedData = localStorage.getItem(`memorial_${memorialId}`)
+        if (!savedData) {
+          throw new Error("Dados não foram salvos corretamente")
+        }
+
         console.log("✅ Memorial salvo no localStorage:", memorialId)
         console.log("📊 Status de validação:", isValid ? "VALIDADO" : "NÃO VALIDADO")
-      } else {
-        console.warn("⚠️ localStorage não disponível")
+      } catch (storageError) {
+        console.error("❌ Erro ao salvar no localStorage:", storageError)
+
+        // Fallback: usar sessionStorage
+        try {
+          console.log("🔄 Tentando sessionStorage como fallback...")
+          sessionStorage.setItem(`memorial_${memorialId}`, JSON.stringify(memorialDataToSave))
+          console.log("✅ Memorial salvo no sessionStorage")
+        } catch (sessionError) {
+          console.error("❌ Erro também no sessionStorage:", sessionError)
+          throw new Error("Não foi possível salvar os dados. Verifique se o modo privado está desabilitado.")
+        }
       }
 
-      // Redirect to memorial page
-      router.push(`/memorial/${memorialId}`)
-    } catch (error) {
-      console.error("❌ Erro ao salvar memorial:", error)
-      alert("Erro ao criar memorial. Tente novamente.")
+      console.log("🔄 Redirecionando para página do memorial...")
+
+      // Usar setTimeout para garantir que o estado seja atualizado antes do redirect
+      setTimeout(() => {
+        router.push(`/memorial/${memorialId}`)
+      }, 100)
+    } catch (error: any) {
+      console.error("❌ Erro ao criar memorial:", error)
+      setIsSubmitting(false)
+
+      // Mostrar erro específico para o usuário
+      const errorMessage = error.message || "Erro desconhecido ao criar memorial"
+      alert(
+        `❌ Erro ao criar memorial:\n\n${errorMessage}\n\nTente novamente ou verifique se o modo privado está desabilitado.`,
+      )
     }
   }
 
@@ -444,7 +525,7 @@ export default function CriarMemorialPage() {
                   />
                   <Label
                     htmlFor="photo-upload"
-                    className="cursor-pointer bg-blue-400 hover:bg-blue-500 text-white px-6 py-2 rounded-full transition-colors"
+                    className="cursor-pointer bg-blue-400 hover:bg-blue-500 text-white px-6 py-2 rounded-full transition-colors inline-block"
                   >
                     Selecionar Fotos
                   </Label>
@@ -504,15 +585,38 @@ export default function CriarMemorialPage() {
             </CardContent>
           </Card>
 
-          {/* Botão Submit */}
+          {/* Botão Submit - Melhorado para iOS */}
           <div className="pt-6">
             <Button
               type="submit"
               size="lg"
-              className="w-full bg-blue-400 hover:bg-blue-500 text-white py-4 text-lg rounded-full"
+              disabled={isSubmitting}
+              className="w-full bg-blue-400 hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-4 text-lg rounded-full transition-all duration-200"
+              style={{
+                // Forçar estilos para iOS
+                WebkitAppearance: "none",
+                WebkitTouchCallout: "none",
+                WebkitUserSelect: "none",
+                touchAction: "manipulation",
+              }}
             >
-              Gerar Memorial
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Gerando Memorial...
+                </>
+              ) : (
+                "Gerar Memorial"
+              )}
             </Button>
+
+            {/* Debug info para desenvolvimento */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="mt-4 text-xs text-gray-500 text-center">
+                Debug: {typeof Storage !== "undefined" ? "✅ Storage OK" : "❌ Storage não disponível"} |
+                {typeof window !== "undefined" ? "✅ Window OK" : "❌ Window não disponível"}
+              </div>
+            )}
           </div>
         </form>
       </div>
