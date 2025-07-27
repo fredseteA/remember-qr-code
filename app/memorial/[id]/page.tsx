@@ -10,7 +10,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MapPin, Calendar, QrCode, ArrowLeft, AlertCircle, CheckCircle } from "lucide-react"
+import {
+  MapPin,
+  Calendar,
+  QrCode,
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle,
+  Heart,
+  User,
+  Church,
+  MessageCircle,
+  Star,
+  Smile,
+  FileText,
+} from "lucide-react"
 import { ChristianCross } from "@/components/ui/christian-cross"
 import Link from "next/link"
 import type { MemorialData } from "@/lib/firestore"
@@ -61,7 +75,9 @@ export default function MemorialPage() {
     const savedMemorial = localStorage.getItem(`memorial_${memorialId}`)
 
     if (savedMemorial) {
-      setMemorial(JSON.parse(savedMemorial))
+      const memorialData = JSON.parse(savedMemorial)
+      setMemorial(memorialData)
+      console.log("📊 Memorial carregado:", memorialData.validado ? "✅ VALIDADO" : "⚠️ NÃO VALIDADO")
     }
 
     // Debug das variáveis de ambiente
@@ -142,6 +158,8 @@ Local de Sepultamento: ${memorial?.localSepultamento}
 Data de Nascimento: ${formatDate(memorial?.dataNascimento || "")}
 Data de Falecimento: ${formatDate(memorial?.dataFalecimento || "")}
 URL do Memorial: ${window.location.href}
+
+STATUS: ${memorial?.validado ? "✅ MEMORIAL VALIDADO (completo)" : "⚠️ Memorial não validado (incompleto)"}
 
 ${firebaseError ? "⚠️ Dados enviados via email (Firebase indisponível)" : "✅ Dados salvos no Firebase"}
 
@@ -273,6 +291,9 @@ Por favor, entre em contato para solicitar o QR Code.`
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     <pre className="text-xs whitespace-pre-wrap">{debugInfo}</pre>
+                    <div className="mt-2 text-xs">
+                      <strong>Status:</strong> {memorial.validado ? "✅ VALIDADO" : "⚠️ NÃO VALIDADO"}
+                    </div>
                   </AlertDescription>
                 </Alert>
               )}
@@ -323,6 +344,93 @@ Por favor, entre em contato para solicitar o QR Code.`
             </CardContent>
           </Card>
         </div>
+
+        {/* Campos Opcionais Preenchidos */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          {memorial.profissao && (
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="flex items-center mb-4">
+                  <User className="w-6 h-6 text-blue-400 mr-3" />
+                  <h3 className="text-xl font-medium text-slate-700">Profissão</h3>
+                </div>
+                <p className="text-slate-600 leading-relaxed">{memorial.profissao}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {memorial.religiao && (
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="flex items-center mb-4">
+                  <Church className="w-6 h-6 text-blue-400 mr-3" />
+                  <h3 className="text-xl font-medium text-slate-700">Religião</h3>
+                </div>
+                <p className="text-slate-600 leading-relaxed">{memorial.religiao}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {memorial.hobbies && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
+            <CardContent className="p-8">
+              <div className="flex items-center mb-4">
+                <Heart className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-medium text-slate-700">Hobbies e Interesses</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{memorial.hobbies}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {memorial.qualidades && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
+            <CardContent className="p-8">
+              <div className="flex items-center mb-4">
+                <Star className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-medium text-slate-700">Qualidades Marcantes</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{memorial.qualidades}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {memorial.jeito && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
+            <CardContent className="p-8">
+              <div className="flex items-center mb-4">
+                <Smile className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-medium text-slate-700">Jeito de Ser</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{memorial.jeito}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {memorial.frases && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
+            <CardContent className="p-8">
+              <div className="flex items-center mb-4">
+                <MessageCircle className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-medium text-slate-700">Frases Marcantes</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line italic">"{memorial.frases}"</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {memorial.outrosDetalhes && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
+            <CardContent className="p-8">
+              <div className="flex items-center mb-4">
+                <FileText className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-medium text-slate-700">Outros Detalhes</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{memorial.outrosDetalhes}</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Biografia */}
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-12">
@@ -376,6 +484,25 @@ Por favor, entre em contato para solicitar o QR Code.`
                   <AlertDescription className="text-green-700">
                     🔥 Firebase configurado - dados serão salvos automaticamente
                   </AlertDescription>
+                </Alert>
+
+                {/* Status de validação */}
+                <Alert
+                  className={`mb-2 ${memorial.validado ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}
+                >
+                  {memorial.validado ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">✅ Memorial completo e validado</AlertDescription>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-amber-800">
+                        ⚠️ Memorial incompleto (não atende todos os critérios)
+                      </AlertDescription>
+                    </>
+                  )}
                 </Alert>
 
                 <Alert className="mb-4">
