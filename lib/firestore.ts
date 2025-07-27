@@ -4,7 +4,7 @@ import { getFirestoreInstance, getStorageInstance } from "./firebase"
 import type { Firestore } from "firebase/firestore"
 import type { FirebaseStorage } from "firebase/storage"
 
-// Interface para os dados do memorial
+// Interface para os dados do memorial (atualizada)
 export interface MemorialData {
   nomeCompleto: string
   localSepultamento: string
@@ -12,6 +12,15 @@ export interface MemorialData {
   dataFalecimento: string
   biografia: string
   fotos: string[]
+  // Novos campos opcionais
+  hobbies?: string
+  profissao?: string
+  religiao?: string
+  frases?: string
+  qualidades?: string
+  jeito?: string
+  outrosDetalhes?: string
+  validado: boolean
 }
 
 // Interface para dados do solicitante
@@ -21,7 +30,7 @@ export interface SolicitanteData {
   telefone: string
 }
 
-// Interface para dados completos a serem salvos no Firestore
+// Interface para dados completos a serem salvos no Firestore (atualizada)
 export interface SolicitacaoQRCode {
   // Dados do memorial
   memorial_nome_completo: string
@@ -31,6 +40,16 @@ export interface SolicitacaoQRCode {
   memorial_biografia: string
   memorial_fotos_urls: string[]
   memorial_url: string
+
+  // Novos campos opcionais do memorial
+  memorial_hobbies?: string
+  memorial_profissao?: string
+  memorial_religiao?: string
+  memorial_frases?: string
+  memorial_qualidades?: string
+  memorial_jeito?: string
+  memorial_outros_detalhes?: string
+  memorial_validado: boolean
 
   // Dados do solicitante
   solicitante_nome: string
@@ -92,7 +111,7 @@ async function uploadFoto(fotoBase64: string, nomeHomenageado: string, index: nu
   }
 }
 
-// Função principal para salvar solicitação no Firestore
+// Função principal para salvar solicitação no Firestore (atualizada)
 export async function salvarSolicitacaoQRCode(
   memorial: MemorialData,
   solicitante: SolicitanteData,
@@ -124,9 +143,9 @@ export async function salvarSolicitacaoQRCode(
       console.log(`✅ ${fotosUrls.length} foto(s) enviada(s) com sucesso!`)
     }
 
-    // 2. Preparar dados para o Firestore
+    // 2. Preparar dados para o Firestore (incluindo novos campos)
     const dadosSolicitacao: SolicitacaoQRCode = {
-      // Dados do memorial
+      // Dados básicos do memorial
       memorial_nome_completo: memorial.nomeCompleto,
       memorial_local_sepultamento: memorial.localSepultamento,
       memorial_data_nascimento: memorial.dataNascimento,
@@ -134,6 +153,16 @@ export async function salvarSolicitacaoQRCode(
       memorial_biografia: memorial.biografia,
       memorial_fotos_urls: fotosUrls,
       memorial_url: memorialUrl,
+      memorial_validado: memorial.validado,
+
+      // Novos campos opcionais (só incluir se preenchidos)
+      ...(memorial.hobbies && { memorial_hobbies: memorial.hobbies }),
+      ...(memorial.profissao && { memorial_profissao: memorial.profissao }),
+      ...(memorial.religiao && { memorial_religiao: memorial.religiao }),
+      ...(memorial.frases && { memorial_frases: memorial.frases }),
+      ...(memorial.qualidades && { memorial_qualidades: memorial.qualidades }),
+      ...(memorial.jeito && { memorial_jeito: memorial.jeito }),
+      ...(memorial.outrosDetalhes && { memorial_outros_detalhes: memorial.outrosDetalhes }),
 
       // Dados do solicitante
       solicitante_nome: solicitante.nome,
@@ -149,12 +178,14 @@ export async function salvarSolicitacaoQRCode(
     console.log("📋 Dados a serem salvos:", {
       ...dadosSolicitacao,
       memorial_fotos_urls: `${fotosUrls.length} foto(s)`,
+      memorial_validado: memorial.validado ? "✅ VALIDADO" : "⚠️ NÃO VALIDADO",
     })
 
     // 3. Salvar no Firestore
     const docRef = await addDoc(collection(db, "solicitacoes_qrcode"), dadosSolicitacao)
 
     console.log("✅ Solicitação salva no Firestore com ID:", docRef.id)
+    console.log(`📊 Status de validação: ${memorial.validado ? "VALIDADO" : "NÃO VALIDADO"}`)
 
     return docRef.id
   } catch (error) {
