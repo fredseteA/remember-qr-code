@@ -72,13 +72,37 @@ export default function MemorialPage() {
 
   useEffect(() => {
     const memorialId = params.id as string
-    const savedMemorial = localStorage.getItem(`memorial_${memorialId}`)
+    console.log("🔍 Buscando memorial com ID:", memorialId)
 
-    if (savedMemorial) {
-      const memorialData = JSON.parse(savedMemorial)
-      setMemorial(memorialData)
-      console.log("📊 Memorial carregado:", memorialData.validado ? "✅ VALIDADO" : "⚠️ NÃO VALIDADO")
+    // Função melhorada para carregar memorial com fallback
+    const loadMemorial = () => {
+      try {
+        // Tentar localStorage primeiro
+        let savedMemorial = null
+
+        if (typeof Storage !== "undefined") {
+          savedMemorial = localStorage.getItem(`memorial_${memorialId}`)
+
+          // Se não encontrar no localStorage, tentar sessionStorage
+          if (!savedMemorial) {
+            console.log("🔄 Tentando sessionStorage...")
+            savedMemorial = sessionStorage.getItem(`memorial_${memorialId}`)
+          }
+        }
+
+        if (savedMemorial) {
+          const memorialData = JSON.parse(savedMemorial)
+          setMemorial(memorialData)
+          console.log("✅ Memorial carregado:", memorialData.validado ? "✅ VALIDADO" : "⚠️ NÃO VALIDADO")
+        } else {
+          console.warn("⚠️ Memorial não encontrado no storage")
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar memorial:", error)
+      }
     }
+
+    loadMemorial()
 
     // Debug das variáveis de ambiente
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
@@ -92,23 +116,42 @@ Debug Info:
 - Template ID: ${templateId || "NÃO ENCONTRADO"}
 - Firebase Project: remember-qr-code
 - Todas configuradas: ${publicKey && serviceId && templateId ? "SIM" : "NÃO"}
+- Storage disponível: ${typeof Storage !== "undefined" ? "SIM" : "NÃO"}
+- User Agent: ${typeof navigator !== "undefined" ? navigator.userAgent.substring(0, 50) + "..." : "N/A"}
     `
     setDebugInfo(debug)
   }, [params.id])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR")
+    try {
+      return new Date(dateString).toLocaleDateString("pt-BR")
+    } catch (error) {
+      console.warn("⚠️ Erro ao formatar data:", dateString)
+      return dateString
+    }
   }
 
   const calculateAge = (nascimento: string, falecimento: string) => {
-    const nascDate = new Date(nascimento)
-    const falecDate = new Date(falecimento)
-    const age = falecDate.getFullYear() - nascDate.getFullYear()
-    return age
+    try {
+      const nascDate = new Date(nascimento)
+      const falecDate = new Date(falecimento)
+      const age = falecDate.getFullYear() - nascDate.getFullYear()
+      return age
+    } catch (error) {
+      console.warn("⚠️ Erro ao calcular idade")
+      return 0
+    }
   }
 
   const handleSolicitarQR = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Prevenir múltiplos cliques
+    if (isSubmitting) {
+      console.log("⚠️ Já está processando, ignorando clique duplo")
+      return
+    }
+
     setIsSubmitting(true)
     setIsUploadingFirebase(true)
     setUploadProgress("Iniciando...")
@@ -194,7 +237,11 @@ Por favor, entre em contato para solicitar o QR Code.`
           console.warn("⚠️ Erro no EmailJS, usando fallback:", emailError)
           // Fallback para cliente de email
           const mailtoLink = `mailto:fredericoluna93@gmail.com?subject=Solicitação de QR Code - ${memorial?.nomeCompleto}&body=${encodeURIComponent(emailBody)}`
-          window.open(mailtoLink, "_blank")
+
+          // Usar window.location.href para iOS
+          if (typeof window !== "undefined") {
+            window.location.href = mailtoLink
+          }
 
           alert(
             "🎉 SUCESSO!\n\n✅ Solicitação processada!\n📧 Seu cliente de email foi aberto com os dados preenchidos!",
@@ -203,7 +250,11 @@ Por favor, entre em contato para solicitar o QR Code.`
       } else {
         // Sempre usar fallback de email se EmailJS não estiver configurado
         const mailtoLink = `mailto:fredericoluna93@gmail.com?subject=Solicitação de QR Code - ${memorial?.nomeCompleto}&body=${encodeURIComponent(emailBody)}`
-        window.open(mailtoLink, "_blank")
+
+        // Usar window.location.href para iOS
+        if (typeof window !== "undefined") {
+          window.location.href = mailtoLink
+        }
 
         alert("🎉 SUCESSO!\n\n✅ Solicitação processada!\n📧 Seu cliente de email foi aberto com os dados preenchidos!")
       }
@@ -235,7 +286,11 @@ ERRO TÉCNICO: ${error.message || error}
 Por favor, entre em contato para solicitar o QR Code.`
 
       const mailtoLink = `mailto:fredericoluna93@gmail.com?subject=Solicitação de QR Code - ${memorial?.nomeCompleto}&body=${encodeURIComponent(emailBody)}`
-      window.open(mailtoLink, "_blank")
+
+      // Usar window.location.href para iOS
+      if (typeof window !== "undefined") {
+        window.location.href = mailtoLink
+      }
 
       alert(
         "⚠️ Ocorreu um problema técnico, mas sua solicitação foi processada!\n\n📧 Seu cliente de email foi aberto com os dados preenchidos.",
@@ -252,6 +307,11 @@ Por favor, entre em contato para solicitar o QR Code.`
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-600 mb-4">Memorial não encontrado</p>
+          <p className="text-slate-500 text-sm mb-4">
+            {typeof Storage === "undefined"
+              ? "⚠️ Storage não disponível neste navegador"
+              : "Verifique se o link está correto"}
+          </p>
           <Link href="/">
             <Button variant="outline">Voltar ao início</Button>
           </Link>
@@ -467,6 +527,13 @@ Por favor, entre em contato para solicitar o QR Code.`
               <Button
                 size="lg"
                 className="bg-blue-400 hover:bg-blue-500 text-white px-12 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                style={{
+                  // Forçar estilos para iOS
+                  WebkitAppearance: "none",
+                  WebkitTouchCallout: "none",
+                  WebkitUserSelect: "none",
+                  touchAction: "manipulation",
+                }}
               >
                 <QrCode className="w-6 h-6 mr-3" />
                 Solicitar QR Code
@@ -564,7 +631,18 @@ Por favor, entre em contato para solicitar o QR Code.`
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-blue-400 hover:bg-blue-500" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-400 hover:bg-blue-500 disabled:bg-gray-400"
+                  disabled={isSubmitting}
+                  style={{
+                    // Forçar estilos para iOS
+                    WebkitAppearance: "none",
+                    WebkitTouchCallout: "none",
+                    WebkitUserSelect: "none",
+                    touchAction: "manipulation",
+                  }}
+                >
                   {isUploadingFirebase
                     ? "Salvando no Firebase..."
                     : isSubmitting
