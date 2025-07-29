@@ -22,8 +22,9 @@ export default function HomePage() {
             <div className="relative">
               <div className="w-30 h-30 bg-blue-100 rounded-full flex items-center justify-center">
                 <img 
-                  src="/logo-borda-curva.jpg"
+                  src="/logo.png"
                   alt="logo remember"
+                  className="rounded-full"
                 />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
