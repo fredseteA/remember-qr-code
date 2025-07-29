@@ -12,6 +12,16 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+		width: {
+				'29': '6.5rem',
+            	'30': '8.5rem',
+				'31': '9rem',
+			},
+			height: {
+				'29': '6.5rem',
+				'30': '8.5rem', 
+				'31': '9rem',
+			},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

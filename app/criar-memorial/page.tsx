@@ -265,8 +265,11 @@ export default function CriarMemorialPage() {
             Voltar ao início
           </Link>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <ChristianCross className="w-8 h-8 text-blue-400" />
+            <div className="w-29 h-29 bg-blue-100 rounded-full flex items-center justify-center">
+              <img
+                src="/logo-redonda.png"
+                alt="logo-remember"
+              />
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-light text-slate-800 mb-2">Criar Memorial</h1>

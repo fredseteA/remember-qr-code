@@ -20,8 +20,11 @@ export default function HomePage() {
         <div className="text-center mb-16">
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                <ChristianCross className="w-12 h-12 text-blue-400" />
+              <div className="w-30 h-30 bg-blue-100 rounded-full flex items-center justify-center">
+                <img 
+                  src="/logo-quadrada.jpg"
+                  alt="logo remember"
+                />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
                 <QrCode className="w-4 h-4 text-slate-600" />

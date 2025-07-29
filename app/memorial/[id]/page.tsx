@@ -363,8 +363,11 @@ Por favor, entre em contato para solicitar o QR Code.`
 
         {/* Memorial Header */}
         <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ChristianCross className="w-12 h-12 text-blue-400" />
+          <div className="w-31 h-31 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <img
+              src="/logo-redonda.png"
+              alt="logo remember"
+            />
           </div>
           <h1 className="text-4xl md:text-5xl font-light text-slate-800 mb-4">{memorial.nomeCompleto}</h1>
           <p className="text-xl text-slate-600">
