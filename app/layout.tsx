@@ -9,7 +9,9 @@ export const metadata: Metadata = {
   title: "Remember QR Code - Memorial Online",
   description:
     "Crie uma homenagem eterna para quem partiu. Gere um memorial online e receba um QR Code para colar no túmulo ou local especial.",
-    generator: 'v0.dev'
+  icons: {
+    icon: "/fav-ico.png", // <-- aqui está seu favicon
+  },
 }
 
 export default function RootLayout({
