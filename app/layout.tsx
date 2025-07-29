@@ -22,7 +22,7 @@ export default function RootLayout({
         {/* Open Graph para Facebook, WhatsApp etc */}
         <meta property="og:title" content="Remember QR Code - Memorial Online" />
         <meta property="og:description" content="Crie uma homenagem eterna para quem partiu. Gere um memorial online e receba um QR Code para colar no túmulo ou local especial." />
-        <meta property="og:image" content="https://remember-qr.vercel.app/remember-preview.png" />
+        <meta property="og:image" content="https://remember-qr.vercel.app/logo-preview.png" />
         <meta property="og:url" content="https://remember-qr.vercel.app/" />
         <meta property="og:type" content="website" />
 
@@ -30,7 +30,7 @@ export default function RootLayout({
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Remember QR Code - Memorial Online" />
         <meta name="twitter:description" content="Crie uma homenagem eterna para quem partiu. Gere um memorial online e receba um QR Code para colar no túmulo ou local especial." />
-        <meta name="twitter:image" content="https://remember-qr.vercel.app/remember-preview.png" />
+        <meta name="twitter:image" content="https://remember-qr.vercel.app/logo-preview.png" />
 
         {/* Ícone do site */}
         <link rel="icon" href="/fav-ico.png" type="image/png" />
