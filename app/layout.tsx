@@ -18,7 +18,7 @@ export const metadata: Metadata = {
       "Crie uma homenagem eterna para quem partiu. Gere um memorial online e receba um QR Code para colar no túmulo ou local especial.",
     images: [
       {
-        url: 'https://remember-qr.vercel.app/fav-ico.png', // logo que vai aparecer no link
+        url: 'https://remember-qr.vercel.app/logo.png', // logo que vai aparecer no link
         width: 800, // Largura da imagem em pixels
         height: 600, // Altura da imagem em pixels
         alt: 'Logo Remember QR Code', 
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: "Remember QR Code - Memorial Online",
     description: "Crie uma homenagem eterna para quem partiu. Gere um memorial online e receba um QR Code para colar no túmulo ou local especial.",
-    images: ['https://remember-qr.vercel.app/fav-ico.png'],
+    images: ['https://remember-qr.vercel.app/logo.png'],
   },
 }
 
