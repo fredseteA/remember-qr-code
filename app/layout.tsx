@@ -13,7 +13,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
         
         {/* SEO e Open Graph */}
         <title>Remember QR Code - Memorial Online</title>
