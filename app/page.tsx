@@ -88,12 +88,13 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="mt-20 py-8 text-center text-slate-500 text-sm">
-        <p>© 2024 Remember QR Code - Preservando memórias com carinho</p>
-        <div className="mt-2">
+        <p>© 2025 Remember QR Code - Preservando memórias com carinho</p>
+        {/* LINK DE CONFIGURAÇÃO DE EMAILJS*/}
+        {/*<div className="mt-2">
           <Link href="/setup" className="text-blue-400 hover:text-blue-500 text-xs">
             Configurar EmailJS
           </Link>
-        </div>
+        </div>*/}
       </footer>
     </div>
   )
