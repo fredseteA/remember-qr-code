@@ -341,7 +341,7 @@ Por favor, entre em contato para solicitar o QR Code.`
           </Link>
 
           {/* Debug Info - apenas em desenvolvimento */}
-          {process.env.NODE_ENV === "development" && (
+          {/*{process.env.NODE_ENV === "development" && (
             <div className="mb-4">
               <Button variant="outline" size="sm" onClick={() => setShowDebug(!showDebug)} className="text-xs">
                 {showDebug ? "Ocultar" : "Mostrar"} Debug
@@ -358,7 +358,7 @@ Por favor, entre em contato para solicitar o QR Code.`
                 </Alert>
               )}
             </div>
-          )}
+          )}*/}
         </div>
 
         {/* Memorial Header */}
@@ -547,60 +547,7 @@ Por favor, entre em contato para solicitar o QR Code.`
                 <DialogTitle className="text-2xl font-light text-slate-700">Solicitar QR Code</DialogTitle>
               </DialogHeader>
 
-              {/* Status das configurações */}
-              <div className="space-y-2">
-                <Alert className="mb-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <AlertDescription className="text-green-700">
-                    🔥 Firebase configurado - dados serão salvos automaticamente
-                  </AlertDescription>
-                </Alert>
-
-                {/* Status de validação */}
-                <Alert
-                  className={`mb-2 ${memorial.validado ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}
-                >
-                  {memorial.validado ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">✅ Memorial completo e validado</AlertDescription>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-4 w-4 text-amber-600" />
-                      <AlertDescription className="text-amber-800">
-                        ⚠️ Memorial incompleto (não atende todos os critérios)
-                      </AlertDescription>
-                    </>
-                  )}
-                </Alert>
-
-                <Alert className="mb-4">
-                  {process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <AlertDescription className="text-green-700">
-                        EmailJS configurado - envio automático ativado
-                      </AlertDescription>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-4 w-4 text-amber-500" />
-                      <AlertDescription className="text-amber-700">
-                        EmailJS não configurado - será usado cliente de email padrão
-                      </AlertDescription>
-                    </>
-                  )}
-                </Alert>
-
-                {/* Progress indicator */}
-                {uploadProgress && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{uploadProgress}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
+              {/*VALIDATION*/}
 
               <form onSubmit={handleSolicitarQR} className="space-y-4">
                 <div className="space-y-2">

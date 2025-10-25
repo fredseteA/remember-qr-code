@@ -301,21 +301,31 @@ export default function CriarMemorialPage() {
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-slate-700">{formData.biografia.trim().length}</div>
               <div className="text-sm text-slate-500">caracteres na biografia</div>
-              <div className="text-xs text-slate-400">(mínimo: 500)</div>
+              {/*
+                SUGESTAO DE QUANTIDADE
+                <div className="text-xs text-slate-400">(mínimo: 500)</div>
+              */}
+              
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-white/70">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-slate-700">{formData.fotos.length}</div>
               <div className="text-sm text-slate-500">fotos adicionadas</div>
-              <div className="text-xs text-slate-400">(mínimo: 1)</div>
+              {/*
+                SUGESTAO DE QUANTIDADE
+                <div className="text-xs text-slate-400">(mínimo: 1)</div>
+              */}
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-white/70">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-slate-700">{camposOpcionaisPreenchidos}</div>
               <div className="text-sm text-slate-500">campos opcionais</div>
-              <div className="text-xs text-slate-400">(mínimo: 3)</div>
+              {/*
+                SUGESTAO DE QUANTIDADE
+                <div className="text-xs text-slate-400">(mínimo: 3)</div>
+              */}   
             </CardContent>
           </Card>
         </div>
@@ -565,7 +575,7 @@ export default function CriarMemorialPage() {
               <CardTitle className="text-2xl font-light text-slate-700">Biografia Final *</CardTitle>
               <p className="text-slate-600 text-sm">
                 Escreva aqui o texto final que será exibido no memorial. Use as informações dos campos acima para criar
-                uma biografia completa e carinhosa. <strong>Mínimo de 500 caracteres.</strong>
+                uma biografia completa e carinhosa.
               </p>
             </CardHeader>
             <CardContent>
@@ -581,9 +591,13 @@ export default function CriarMemorialPage() {
                   required
                   className="min-h-[200px] border-slate-200 focus:border-blue-300"
                 />
-                <div className="text-right text-sm text-slate-500">
-                  {formData.biografia.trim().length}/500 caracteres mínimos
-                </div>
+                {/*
+                  SUGESTAO DE QUANTIDADE DE CARACTERES DA BIOGRAFIA
+                  <div className="text-right text-sm text-slate-500">
+                    {formData.biografia.trim().length}/500 caracteres mínimos
+                  </div>
+                */}
+                
               </div>
             </CardContent>
           </Card>
@@ -614,12 +628,13 @@ export default function CriarMemorialPage() {
             </Button>
 
             {/* Debug info para desenvolvimento */}
-            {process.env.NODE_ENV === "development" && (
-              <div className="mt-4 text-xs text-gray-500 text-center">
-                Debug: {typeof Storage !== "undefined" ? "✅ Storage OK" : "❌ Storage não disponível"} |
-                {typeof window !== "undefined" ? "✅ Window OK" : "❌ Window não disponível"}
-              </div>
-            )}
+            {/* {process.env.NODE_ENV === "development" && (
+                <div className="mt-4 text-xs text-gray-500 text-center">
+                  Debug: {typeof Storage !== "undefined" ? "✅ Storage OK" : "❌ Storage não disponível"} |
+                  {typeof window !== "undefined" ? "✅ Window OK" : "❌ Window não disponível"}
+                </div>
+              )}
+            */}
           </div>
         </form>
       </div>
